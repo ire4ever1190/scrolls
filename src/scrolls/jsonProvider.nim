@@ -8,7 +8,8 @@ export configProvider
 ## e.g. The key "hello.world" for `{"hello": {"world": "foo"}}` returns "foo"
 
 type
-  JsonProvider = ref object of ConfigurationProvider
+  JsonProvider* = ref object of ConfigurationProvider
+    ## Provider that reads config stored in JSON
     data: JsonNode
 
 proc newJsonProvider*(data: JsonNode): JsonProvider =

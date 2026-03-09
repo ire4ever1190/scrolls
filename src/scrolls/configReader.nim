@@ -1,6 +1,7 @@
+## .. importdoc:: configProvider.nim
 ## Wrapper around multiple providers. Gives an easy interface for accessing values
 ## and converting them into proper types.
-## If a key doesn't exist then `None(T)` is returned. If it does exist but is in the wrong format then [InvalidFormat] is raised
+## If a key doesn't exist then `None(T)` is returned. If it does exist but is in the wrong format then [InvalidConfigValue] is raised
 
 import ./configProvider
 
@@ -35,3 +36,8 @@ proc get*[T: SomeInteger](reader; key; typ: typedesc[T]): Option[T] =
   ## Attempts to read an integer value from providers. Will be
   ## casted into the type asked for
   reader.value(key, Int).map(val => T(val.ival))
+
+proc get*(reader; key; typ: typedesc[bool]): Option[bool] =
+  ## Attempts to read a boolean value. What is considered true/false is left
+  ## up to the provider
+  reader.value(key, Bool).map(val => val.bval)

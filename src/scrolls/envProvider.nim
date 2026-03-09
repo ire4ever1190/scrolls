@@ -26,7 +26,7 @@ runnableExamples:
 
 
 type
-  EnvProvider = ref object of ConfigurationProvider
+  EnvProvider* = ref object of ConfigurationProvider
     ## Configuration provider that reads from environment variables
 
 proc convertKey*(key: string): string =
@@ -41,7 +41,7 @@ proc convertKey*(key: string): string =
     }
 
     for (input, output) in conversions:
-      assert input.convertKey() == output, input.convertKey & " != " & output
+      assert input.convertKey() == output
 
   result = newStringOfCap(key.len + 5) # Preallocate most of it, giving a bit extra for camels
   var isCamelStart = false
@@ -85,7 +85,7 @@ proc parseValue(value: string, kind: ConfigValueKind): ConfigValue =
   of DoubleList:
     ConfigValue(kind: DoubleList, doubles: parseValues(parseFloat))
 
-proc tryEnv*(key: string): Option[string] =
+proc tryEnv(key: string): Option[string] =
   ## Tries to return an environment variable
   if not existsEnv(key):
     return none(string)

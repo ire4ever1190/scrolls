@@ -54,6 +54,7 @@ suite "Config Reader":
   let reader = initConfigurationReader(StaticProvider(data: toTable {
     "string": ConfigValue(kind: String, sval: "Hello"),
     "integer": ConfigValue(kind: Int, ival: 1),
+    "boolean": ConfigValue(kind: Bool, bval: true)
   }))
 
   test "String value":
@@ -61,6 +62,9 @@ suite "Config Reader":
 
   test "Integer value":
     check reader.get("integer", int) == some(1)
+
+  test "Boolean value":
+    check reader.get("boolean", bool).get()
 
   test "Doesn't error on missing key":
     check reader.get("missing", string).isNone()
