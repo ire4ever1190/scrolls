@@ -1,10 +1,10 @@
 import ./configProvider
 
-import std/[envvars, options, strutils, sugar, sequtils]
+import std/[envvars, options, strutils, sugar, sequtils, tables, paths]
 
-export configProvider
+export configProvider, paths
 
-## Use this provider for reading from either environment variables or `.env` files (in the current working directory)
+## Use this provider for reading from either environment variables or `.env` files (Defaults to one in the current directory)
 ## Keys are converted into environment variables via the following rules
 ## - Key components are converted into underscores e.g. `foo.barBuzz` becomes `foo_barBuzz`
 ## - Camel case is converted into underscores e.g. `foo_barBuzz` becomes `foo_bar_buzz`
@@ -26,6 +26,7 @@ runnableExamples:
 
 type EnvProvider* = ref object of ConfigurationProvider
   ## Configuration provider that reads from environment variables
+  internalVariables: Table[string, string] ## Env variables we parsed from .env files
 
 proc convertKey*(key: string): string =
   ## Converts a key into an environment variable
@@ -57,8 +58,9 @@ proc convertKey*(key: string): string =
       isCamelStart = true
       result &= c.toUpperAscii()
 
-proc newEnvProvider*(): EnvProvider =
-  EnvProvider()
+proc newEnvProvider*(envFile = Path(".env")): EnvProvider =
+  result = EnvProvider()
+  # See if we need to parse any .env files
 
 iterator getValues(value: string): string =
   ## Parses a list of values from environment variables

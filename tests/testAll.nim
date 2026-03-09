@@ -20,10 +20,13 @@ suite "Environment provider":
     for (key, _) in testValues:
       delEnv(key)
 
-  let reader = initConfigurationReader(newEnvProvider())
+  let reader = initConfigurationReader(newEnvProvider(Path("test.env")))
 
   test "Can access basic key":
     check reader.get("foo.bar", string) == some("hello world")
+
+  test "Environment file are parsed":
+    check reader.get("some.value", string) == some("BAR")
 
 suite "JSON provider":
   let reader =
