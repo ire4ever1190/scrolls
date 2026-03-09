@@ -5,7 +5,7 @@
 #
 # To run these tests, simply execute `nimble test`.
 
-import std/[unittest, envvars, options, json, tables]
+import std/[unittest, envvars, options, json, tables, strutils, streams]
 
 import scrolls
 
@@ -37,6 +37,20 @@ suite "JSON provider":
 
   test "Can access nested key":
     check reader.get("foo.bar", int) == some(1)
+
+suite "TOML provider":
+  let reader = initConfigurationReader(newTomlProvider(newStringStream """
+  global = true
+  [auth]
+  username = "jdoe1"
+  password = "hunter2"
+  """.unindent()))
+
+  test "Global value":
+    check reader.get("global", bool).get()
+
+  test "Nested value":
+    check reader.get("auth.username", string).get() == "jdoe1"
 
 type StaticProvider = ref object of ConfigurationProvider
   data: Table[string, ConfigValue]
