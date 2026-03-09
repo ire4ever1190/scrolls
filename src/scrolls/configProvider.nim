@@ -10,8 +10,11 @@ type
     Bool
     Int
     Double
-    List
-    Table
+    StringList
+    BoolList
+    IntList
+    DoubleList
+
   ConfigValue* = object
     ## Value stored in config
     sensitive*: bool ## If true, then the value shouldn't be logged
@@ -20,23 +23,41 @@ type
     of Bool: bval*: bool
     of Int: ival*: BiggestInt
     of Double: dval*: BiggestFloat
-    of List: items*: seq[ConfigValue]
-    of Table: mapping*: Table[string, ConfigValue]
+    of StringList: items*: seq[string]
+    of BoolList: bools*: seq[bool]
+    of IntList: ints*: seq[BiggestInt]
+    of DoubleList: doubles*: seq[BiggestFloat]
 
-  Key* = seq[string]
-    ## Key to access a config value
+  InvalidConfigValue* = ref object of CatchableError
+    ## Raised when a key is found but the [ConfigValueKind] asked for does not match
+    ## the value
+    value*: ConfigValue
+    key*: string
 
-  ConfigurationProvider = ref object of RootObj
+  ConfigurationProvider* = ref object of RootObj
     ## Base provider interface that must be implemented by other providers
 
-proc parseKey*(key: string): Key =
-  ## Parses a key in the form `"some.key.foo"` into `["some", "key", "foo"]`
-  for part in key.split("."):
-    result &= part
-
-method value*(provider: ConfigurationProvider, key: Key): Option[ConfigValue] {.base.} =
-  ## Must be implemented by a provider. This takes a key and returns a [ConfigValue] if its found
+method value*(provider: ConfigurationProvider, key: string, kind: ConfigValueKind): Option[ConfigValue] {.base.} =
+  ## Must be implemented by a provider. This takes a key and returns a [ConfigValue] if its found.
+  ## If a key is found but does not meet the `kind` provider, [InvalidConfigValueType] should be thrown
   raise (ref CatchableError)(msg: "Value method has not been implemented")
 
-proc value*(provider: ConfigurationProvider, key: string): Option[ConfigValue] =
-  provider.value(key.parseKey())
+using value: ConfigValue
+
+proc `$`*(value): string =
+  ## Stringifies the config value. For sensitive items only `"********"` is returned
+  runnableExamples:
+    assert $ConfigValue(kind: String, sval: "Foo") == "Foo"
+    assert $ConfigValue(kind: String, sval: "Foo", sensitive: true) == "********"
+  if value.sensitive:
+    return "********"
+  else:
+    case value.kind
+    of String: value.sval
+    of Bool: $value.bval
+    of Int: $value.ival
+    of Double: $value.dval
+    of StringList: $value.items
+    of BoolList: $value.bools
+    of IntList: $value.ints
+    of DoubleList: $value.doubles
