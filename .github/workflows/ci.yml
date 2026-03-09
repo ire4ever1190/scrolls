@@ -26,3 +26,4 @@ jobs:
         with:
           main-file: "src/scrolls.nim"
           deploy: "pages"
+          versions: "stable HEAD"
