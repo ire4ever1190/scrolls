@@ -10,13 +10,9 @@ import std/[unittest, envvars, options, json, tables]
 import scrolls
 
 suite "Environment provider":
-  const testValues = {
-    "FOO_BAR": "hello world",
-    "BUZZES": "foo,bar,buzz"
-  }
+  const testValues = {"FOO_BAR": "hello world", "BUZZES": "foo,bar,buzz"}
 
   setup:
-
     for (key, value) in testValues:
       putEnv(key, value)
 
@@ -30,12 +26,8 @@ suite "Environment provider":
     check reader.get("foo.bar", string) == some("hello world")
 
 suite "JSON provider":
-  let reader = initConfigurationReader(newJsonProvider(%* {
-    "foo": {
-      "bar": 1
-    },
-    "hello": "world"
-  }))
+  let reader =
+    initConfigurationReader(newJsonProvider(%*{"foo": {"bar": 1}, "hello": "world"}))
 
   test "Can access basic key":
     check reader.get("hello", string) == some("world")
@@ -43,24 +35,30 @@ suite "JSON provider":
   test "Can access nested key":
     check reader.get("foo.bar", int) == some(1)
 
-type
-  StaticProvider = ref object of ConfigurationProvider
-    data: Table[string, ConfigValue]
-method value*(provider: StaticProvider, key: string, kind: ConfigValueKind): Option[ConfigValue] =
+type StaticProvider = ref object of ConfigurationProvider
+  data: Table[string, ConfigValue]
+
+method value*(
+    provider: StaticProvider, key: string, kind: ConfigValueKind
+): Option[ConfigValue] =
   if key in provider.data:
     return some provider.data[key]
 
 suite "Config Reader":
-  let reader = initConfigurationReader(StaticProvider(data: toTable {
-    "string": ConfigValue(kind: String, sval: "Hello"),
-    "integer": ConfigValue(kind: Int, ival: 1),
-    "boolean": ConfigValue(kind: Bool, bval: true),
-    "double": ConfigValue(kind: Double, dval: 3.14),
-    "stringList": ConfigValue(kind: StringList, items: @["a", "b", "c"]),
-    "boolList": ConfigValue(kind: BoolList, bools: @[true, false, true]),
-    "intList": ConfigValue(kind: IntList, ints: @[1, 2, 3]),
-    "doubleList": ConfigValue(kind: DoubleList, doubles: @[1.1, 2.2, 3.3])
-  }))
+  let reader = initConfigurationReader(
+    StaticProvider(
+      data: toTable {
+        "string": ConfigValue(kind: String, sval: "Hello"),
+        "integer": ConfigValue(kind: Int, ival: 1),
+        "boolean": ConfigValue(kind: Bool, bval: true),
+        "double": ConfigValue(kind: Double, dval: 3.14),
+        "stringList": ConfigValue(kind: StringList, items: @["a", "b", "c"]),
+        "boolList": ConfigValue(kind: BoolList, bools: @[true, false, true]),
+        "intList": ConfigValue(kind: IntList, ints: @[1, 2, 3]),
+        "doubleList": ConfigValue(kind: DoubleList, doubles: @[1.1, 2.2, 3.3]),
+      }
+    )
+  )
 
   test "String value":
     check reader.get("string", string) == some("Hello")
@@ -88,3 +86,32 @@ suite "Config Reader":
 
   test "Doesn't error on missing key":
     check reader.get("missing", string).isNone()
+
+  test "Can convert into object":
+    type
+      InnerObj = object
+        field: bool
+
+      Obj = object
+        name: string
+        withDefault = "hello"
+        optional: Option[int]
+        inner: InnerObj
+
+    let reader = initConfigurationReader(
+      StaticProvider(
+        data: toTable {
+          "name": ConfigValue(kind: String, sval: "Hello"),
+          "inner.field": ConfigValue(kind: Bool, bval: true),
+          "optional": ConfigValue(kind: Int, ival: 1),
+        }
+      )
+    )
+
+    check reader.get(Obj) ==
+      Obj(
+        name: "Hello",
+        withDefault: "hello",
+        optional: some(1),
+        inner: InnerObj(field: true),
+      )

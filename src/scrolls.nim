@@ -18,11 +18,11 @@ runnableExamples:
   # These providers are read in order
   let reader = initConfigurationReader(
     newEnvProvider(), # We want environment variables to have highest priority
-    newJsonProvider(%* { # We use hard coded values, but could use a JSON config file
-      "json": {
-        "example": "hello"
+    newJsonProvider(
+      %*{ # We use hard coded values, but could use a JSON config file
+        "json": {"example": "hello"}
       }
-    })
+    ),
   )
 
   assert reader.get("env.example", bool).get() # It can parse types

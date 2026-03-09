@@ -24,10 +24,8 @@ runnableExamples:
 
   assert provider.value("foo.bar", String).get().sval == "Hello world"
 
-
-type
-  EnvProvider* = ref object of ConfigurationProvider
-    ## Configuration provider that reads from environment variables
+type EnvProvider* = ref object of ConfigurationProvider
+  ## Configuration provider that reads from environment variables
 
 proc convertKey*(key: string): string =
   ## Converts a key into an environment variable
@@ -37,18 +35,20 @@ proc convertKey*(key: string): string =
       # Camel case is supported
       "foo.barBuzz": "FOO_BAR_BUZZ",
       "foo.bar.buzz": "FOO_BAR_BUZZ",
-      "foo.userID": "FOO_USER_ID"
+      "foo.userID": "FOO_USER_ID",
     }
 
     for (input, output) in conversions:
       assert input.convertKey() == output
 
-  result = newStringOfCap(key.len + 5) # Preallocate most of it, giving a bit extra for camels
+  result = newStringOfCap(key.len + 5)
+    # Preallocate most of it, giving a bit extra for camels
   var isCamelStart = false
   for c in key:
     case c
-    of '.': result &= '_'
-    of 'A'..'Z':
+    of '.':
+      result &= '_'
+    of 'A' .. 'Z':
       if isCamelStart:
         result &= '_'
         isCamelStart = false
@@ -56,7 +56,6 @@ proc convertKey*(key: string): string =
     else:
       isCamelStart = true
       result &= c.toUpperAscii()
-
 
 proc newEnvProvider*(): EnvProvider =
   EnvProvider()
@@ -69,13 +68,20 @@ iterator getValues(value: string): string =
 proc parseValue(value: string, kind: ConfigValueKind): ConfigValue =
   ## Parses a string into a `ConfigValue` using our rules
   template parseValues(operation: untyped): untyped =
-    collect(for val in getValues(value): operation(val))
+    collect(
+      for val in getValues(value):
+        operation(val)
+    )
 
   case kind
-  of String: ConfigValue(kind: String, sval: value)
-  of Bool: ConfigValue(kind: Bool, bval: parseBool(value))
-  of Int: ConfigValue(kind: Int, ival: parseBiggestInt(value))
-  of Double: ConfigValue(kind: Double, dval: parseFloat(value))
+  of String:
+    ConfigValue(kind: String, sval: value)
+  of Bool:
+    ConfigValue(kind: Bool, bval: parseBool(value))
+  of Int:
+    ConfigValue(kind: Int, ival: parseBiggestInt(value))
+  of Double:
+    ConfigValue(kind: Double, dval: parseFloat(value))
   of StringList:
     ConfigValue(kind: StringList, items: getValues(value).toSeq())
   of BoolList:
@@ -92,6 +98,8 @@ proc tryEnv(key: string): Option[string] =
   else:
     return some(getenv(key))
 
-method value*(provider: EnvProvider, key: string, kind: ConfigValueKind): Option[ConfigValue] =
+method value*(
+    provider: EnvProvider, key: string, kind: ConfigValueKind
+): Option[ConfigValue] =
   let key = convertKey(key)
   key.tryEnv().map(val => val.parseValue(kind))

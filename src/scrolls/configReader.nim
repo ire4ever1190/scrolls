@@ -7,14 +7,15 @@ import ./configProvider
 
 import std/[options, sugar, sequtils]
 
-type
-  ConfigurationReader* = object
-    ## Wrapper around multiple providers.
-    ## This allows a hierarchy of trying to find a key in the first provider and then
-    ## stepping through the rest until a value is found
-    providers: seq[ConfigurationProvider]
+type ConfigurationReader* = object
+  ## Wrapper around multiple providers.
+  ## This allows a hierarchy of trying to find a key in the first provider and then
+  ## stepping through the rest until a value is found
+  providers: seq[ConfigurationProvider]
 
-proc initConfigurationReader*(providers: varargs[ConfigurationProvider]): ConfigurationReader =
+proc initConfigurationReader*(
+    providers: varargs[ConfigurationProvider]
+): ConfigurationReader =
   ConfigurationReader(providers: @providers)
 
 using reader: ConfigurationReader
@@ -58,9 +59,60 @@ proc get*(reader; key; typ: typedesc[seq[bool]]): Option[seq[bool]] =
 proc get*[T: SomeInteger](reader; key; typ: typedesc[seq[T]]): Option[seq[T]] =
   ## Attempts to read an integer list value from providers. Will be
   ## casted into the type asked for
-  reader.value(key, IntList).map(val => val.ints.map(proc (i: BiggestInt): T = T(i)))
+  reader.value(key, IntList).map(
+    val =>
+      val.ints.map(
+        proc(i: BiggestInt): T =
+          T(i)
+      )
+  )
 
 proc get*[T: SomeFloat](reader; key; typ: typedesc[seq[T]]): Option[seq[T]] =
   ## Attempts to read a float list value from providers. Will be
   ## casted into the type asked for
-  reader.value(key, DoubleList).map(val => val.doubles.map(proc (d: BiggestFloat): T = T(d)))
+  reader.value(key, DoubleList).map(
+    val =>
+      val.doubles.map(
+        proc(d: BiggestFloat): T =
+          T(d)
+      )
+  )
+
+proc get*[T](reader; key; typ: typedesc[Option[T]]): Option[T] =
+  ## This is just a generic helper to flatten `Option`.
+  reader.get(key, T)
+
+type Serialisable* = (object or tuple) and (not Option)
+  ## Types that we support serialising from config into
+
+proc getObjectAux[T: Serialisable](reader; key; typ: typedesc[T]): T =
+  ## Auxillery function that handles changing the key as we interate into inner objects
+  result = default(T)
+  for field, fieldValue in result.fieldPairs:
+    when fieldValue is Serialisable:
+      # Recursing into a new object so we aren't accessing a key
+      # but just adding a new part to the path
+      let res = reader.getObjectAux(key & field & ".", typeof(fieldValue))
+    else:
+      let res = reader.get(key & field, typeof(fieldValue))
+
+    when fieldValue is Option or fieldValue is Serialisable:
+      # We can pass it directly
+      fieldValue = res
+    elif res is Option:
+      # We don't want to overwrite any defaults
+      fieldValue = res.get(fieldValue)
+
+proc get*[T: Serialisable](reader; typ: typedesc[T]): T =
+  ## Parses a reader into an object. It doesn't support vararg types, but does support nested objects
+  ## Missing fields are ignored and should be checked after
+  runnableExamples:
+    import scrolls/jsonProvider
+    import std/json
+
+    let reader =
+      initConfigurationReader(newJsonProvider(%*{"hello": "world", "foo": 1}))
+
+    # Type safe access into our config
+    assert reader.get(tuple[hello: string, foo: int]).hello == "world"
+  return reader.getObjectAux("", T)

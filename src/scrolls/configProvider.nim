@@ -15,8 +15,7 @@ type
     IntList
     DoubleList
 
-  ConfigValue* = object
-    ## Value stored in config
+  ConfigValue* = object ## Value stored in config
     sensitive*: bool ## If true, then the value shouldn't be logged
     case kind*: ConfigValueKind
     of String: sval*: string
@@ -37,7 +36,9 @@ type
   ConfigurationProvider* = ref object of RootObj
     ## Base provider interface that must be implemented by other providers
 
-method value*(provider: ConfigurationProvider, key: string, kind: ConfigValueKind): Option[ConfigValue] {.base.} =
+method value*(
+    provider: ConfigurationProvider, key: string, kind: ConfigValueKind
+): Option[ConfigValue] {.base.} =
   ## Must be implemented by a provider. This takes a key and returns a [ConfigValue] if its found.
   ## If a key is found but does not meet the `kind` provider, [InvalidConfigValueType] should be thrown
   raise (ref CatchableError)(msg: "Value method has not been implemented")
@@ -53,11 +54,19 @@ proc `$`*(value): string =
     return "********"
   else:
     case value.kind
-    of String: value.sval
-    of Bool: $value.bval
-    of Int: $value.ival
-    of Double: $value.dval
-    of StringList: $value.items
-    of BoolList: $value.bools
-    of IntList: $value.ints
-    of DoubleList: $value.doubles
+    of String:
+      value.sval
+    of Bool:
+      $value.bval
+    of Int:
+      $value.ival
+    of Double:
+      $value.dval
+    of StringList:
+      $value.items
+    of BoolList:
+      $value.bools
+    of IntList:
+      $value.ints
+    of DoubleList:
+      $value.doubles

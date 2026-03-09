@@ -8,7 +8,7 @@ runnableExamples:
 
   let reader = initConfigurationReader(
     # If config file doesnt exist, defaults are written
-    newJsonProvider(getConfigFile("myapp", %* {"foo": "bar"}))
+    newJsonProvider(getConfigFile("myapp", %*{"foo": "bar"}))
   )
 
   # Will return "foo" the first time. User can update it to be something else
@@ -16,7 +16,7 @@ runnableExamples:
 
 import std/[appdirs, paths, json, sugar, dirs, strformat, syncio, files]
 
-proc getConfigFile*(appName, ext: string, default: proc (): string): Path =
+proc getConfigFile*(appName, ext: string, default: proc(): string): Path =
   ## Returns the config file to use. This is in the form `$XDG_CONFIG_HOME/.config/$appName/config.$ext`
   ## If the file doesn't exist, then `default` is used to fill out the default contents
   let dir = getConfigDir() / Path(appName)

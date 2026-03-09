@@ -1,11 +1,10 @@
 # Package
 
-version       = "0.2.1"
-author        = "Jake Leahy"
-description   = "Config reader package inspired by swift's configuration library"
-license       = "MIT"
-srcDir        = "src"
-
+version = "0.2.1"
+author = "Jake Leahy"
+description = "Config reader package inspired by swift's configuration library"
+license = "MIT"
+srcDir = "src"
 
 # Dependencies
 
