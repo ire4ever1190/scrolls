@@ -11,9 +11,9 @@ jobs:
       id-token: write # Verify deployment
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          set-head: true
+          fetch-depth: 0
 
       - uses: iffy/install-nim@v5
         with:
