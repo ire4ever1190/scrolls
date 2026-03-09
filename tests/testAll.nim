@@ -54,7 +54,12 @@ suite "Config Reader":
   let reader = initConfigurationReader(StaticProvider(data: toTable {
     "string": ConfigValue(kind: String, sval: "Hello"),
     "integer": ConfigValue(kind: Int, ival: 1),
-    "boolean": ConfigValue(kind: Bool, bval: true)
+    "boolean": ConfigValue(kind: Bool, bval: true),
+    "double": ConfigValue(kind: Double, dval: 3.14),
+    "stringList": ConfigValue(kind: StringList, items: @["a", "b", "c"]),
+    "boolList": ConfigValue(kind: BoolList, bools: @[true, false, true]),
+    "intList": ConfigValue(kind: IntList, ints: @[1, 2, 3]),
+    "doubleList": ConfigValue(kind: DoubleList, doubles: @[1.1, 2.2, 3.3])
   }))
 
   test "String value":
@@ -65,6 +70,21 @@ suite "Config Reader":
 
   test "Boolean value":
     check reader.get("boolean", bool).get()
+
+  test "Double value":
+    check reader.get("double", float) == some(3.14)
+
+  test "String list value":
+    check reader.get("stringList", seq[string]) == some(@["a", "b", "c"])
+
+  test "Bool list value":
+    check reader.get("boolList", seq[bool]) == some(@[true, false, true])
+
+  test "Int list value":
+    check reader.get("intList", seq[int]) == some(@[1, 2, 3])
+
+  test "Double list value":
+    check reader.get("doubleList", seq[float]) == some(@[1.1, 2.2, 3.3])
 
   test "Doesn't error on missing key":
     check reader.get("missing", string).isNone()

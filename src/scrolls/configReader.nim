@@ -5,7 +5,7 @@
 
 import ./configProvider
 
-import std/[options, sugar]
+import std/[options, sugar, sequtils]
 
 type
   ConfigurationReader* = object
@@ -41,3 +41,26 @@ proc get*(reader; key; typ: typedesc[bool]): Option[bool] =
   ## Attempts to read a boolean value. What is considered true/false is left
   ## up to the provider
   reader.value(key, Bool).map(val => val.bval)
+
+proc get*[T: SomeFloat](reader; key; typ: typedesc[T]): Option[T] =
+  ## Attempts to read a float value from providers. Will be
+  ## casted into the type asked for
+  reader.value(key, Double).map(val => T(val.dval))
+
+proc get*(reader; key; typ: typedesc[seq[string]]): Option[seq[string]] =
+  ## Attempts to read a string list value from providers
+  reader.value(key, StringList).map(val => val.items)
+
+proc get*(reader; key; typ: typedesc[seq[bool]]): Option[seq[bool]] =
+  ## Attempts to read a boolean list value from providers
+  reader.value(key, BoolList).map(val => val.bools)
+
+proc get*[T: SomeInteger](reader; key; typ: typedesc[seq[T]]): Option[seq[T]] =
+  ## Attempts to read an integer list value from providers. Will be
+  ## casted into the type asked for
+  reader.value(key, IntList).map(val => val.ints.map(proc (i: BiggestInt): T = T(i)))
+
+proc get*[T: SomeFloat](reader; key; typ: typedesc[seq[T]]): Option[seq[T]] =
+  ## Attempts to read a float list value from providers. Will be
+  ## casted into the type asked for
+  reader.value(key, DoubleList).map(val => val.doubles.map(proc (d: BiggestFloat): T = T(d)))
