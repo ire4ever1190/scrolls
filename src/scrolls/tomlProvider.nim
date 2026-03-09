@@ -55,7 +55,6 @@ proc parseValue(value: TomlValueRef, kind: ConfigValueKind): ConfigValue =
   of DoubleList:
     ConfigValue(kind: DoubleList, doubles: parseValues(floatVal))
 
-
 method value*(
     provider: TomlProvider, key: string, kind: ConfigValueKind
 ): Option[ConfigValue] =

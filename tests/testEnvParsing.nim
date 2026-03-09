@@ -9,18 +9,22 @@ test "Parse comment":
   check parseEnvFile("# Hello").len == 0
 
 test "Parse values":
-  let values = parseEnvFile("""
+  let values = parseEnvFile(
+    """
   FOO=BAR
   BUZZ=FOO
-  """.unindent())
+  """.unindent()
+  )
   check values["FOO"] == "BAR"
   check values["BUZZ"] == "FOO"
 
 test "Parse values mixed with comments":
-  let values = parseEnvFile("""
+  let values = parseEnvFile(
+    """
   FOO=BAR
   # Some comment
   BUZZ=FOO
-  """.unindent())
+  """.unindent()
+  )
   check values["FOO"] == "BAR"
   check values["BUZZ"] == "FOO"

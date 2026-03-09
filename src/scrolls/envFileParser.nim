@@ -17,11 +17,12 @@ let grammar = block:
   let comment = e('#') * dot().untilIncl(nlo)
   let key = +e(IdentChars)
   let value = dot().untilIncl(nlo)
-  any((comment: comment, variable: key$key * e('=') * value$value))
+  any((comment: comment, variable: key $ key * e('=') * value $ value))
 
 proc parseEnvFile*(data: string): Table[string, string] =
   for line in grammar.match(data):
     case branch(line)
     of variable:
       result[line.variable.key] = line.variable.value
-    else: discard
+    else:
+      discard

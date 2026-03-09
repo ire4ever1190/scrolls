@@ -20,7 +20,9 @@ suite "Environment provider":
     for (key, _) in testValues:
       delEnv(key)
 
-  let reader = initConfigurationReader(newEnvProvider(currentSourcePath().Path.parentDir() / Path("test.env")))
+  let reader = initConfigurationReader(
+    newEnvProvider(currentSourcePath().Path.parentDir() / Path("test.env"))
+  )
 
   test "Can access basic key":
     check reader.get("foo.bar", string) == some("hello world")
@@ -39,12 +41,16 @@ suite "JSON provider":
     check reader.get("foo.bar", int) == some(1)
 
 suite "TOML provider":
-  let reader = initConfigurationReader(newTomlProvider(newStringStream """
+  let reader = initConfigurationReader(
+    newTomlProvider(
+      newStringStream """
   global = true
   [auth]
   username = "jdoe1"
   password = "hunter2"
-  """.unindent()))
+  """.unindent()
+    )
+  )
 
   test "Global value":
     check reader.get("global", bool).get()
