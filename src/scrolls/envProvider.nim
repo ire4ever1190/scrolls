@@ -1,6 +1,6 @@
-import ./configProvider
+import ./[configProvider, envFileParser]
 
-import std/[envvars, options, strutils, sugar, sequtils, tables, paths]
+import std/[envvars, options, strutils, sugar, sequtils, tables, paths, files]
 
 export configProvider, paths
 
@@ -13,7 +13,9 @@ export configProvider, paths
 ##
 ## All [ConfigValueKind] types are supported. With some special rules
 ## - `bool`: `y, yes, true, 1, on` all return `true`. `n, no, false, 0, off` all return false (See [parseBool](https://nim-lang.org/docs/strutils.html#parseBool%2Cstring))
-## - `lists`: Values are parsed as comma separated values with whitespaced stripped
+## - `lists`: Values are parsed as comma separated values with whitespaced stripped.
+##
+## ENV file parsing is laid out in [envFileParser](envFileParser.html). Values in .env files supersed values that are from the environment
 runnableExamples:
   import std/[envvars, options]
 
@@ -60,7 +62,10 @@ proc convertKey*(key: string): string =
 
 proc newEnvProvider*(envFile = Path(".env")): EnvProvider =
   result = EnvProvider()
-  # See if we need to parse any .env files
+
+  # See if we can parse any .env files
+  if envFile.fileExists:
+    result.internalVariables = readFile($envFile).parseEnvFile()
 
 iterator getValues(value: string): string =
   ## Parses a list of values from environment variables
@@ -104,4 +109,8 @@ method value*(
     provider: EnvProvider, key: string, kind: ConfigValueKind
 ): Option[ConfigValue] =
   let key = convertKey(key)
-  key.tryEnv().map(val => val.parseValue(kind))
+  # First check if the environment file had it
+  if key in provider.internalVariables:
+    some provider.internalVariables[key].parseValue(kind)
+  else:
+    key.tryEnv().map(val => val.parseValue(kind))

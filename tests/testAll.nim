@@ -20,7 +20,7 @@ suite "Environment provider":
     for (key, _) in testValues:
       delEnv(key)
 
-  let reader = initConfigurationReader(newEnvProvider(Path("test.env")))
+  let reader = initConfigurationReader(newEnvProvider(currentSourcePath().Path.parentDir() / Path("test.env")))
 
   test "Can access basic key":
     check reader.get("foo.bar", string) == some("hello world")
