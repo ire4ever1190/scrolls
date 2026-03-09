@@ -1,6 +1,6 @@
-import ./scrolls/[envProvider, configReader]
+import ./scrolls/[envProvider, jsonProvider, configReader]
 
-export envProvider, configReader
+export envProvider, jsonProvider, configReader
 
 ## .. importdoc:: scrolls/envProvider
 ## This library abstracts reading configuration files so that there is a single interface
