@@ -1,12 +1,13 @@
-import ./scrolls/[envProvider, jsonProvider, configReader, configFile]
+import ./scrolls/[envProvider, jsonProvider, tomlProvider, configReader, configFile]
 
-export envProvider, jsonProvider, configReader, configFile
+export envProvider, jsonProvider, tomlProvider, configReader, configFile
 
 ## .. importdoc:: scrolls/envProvider.nim, scrolls/jsonProvider.nim
 ## This library abstracts reading configuration files so that there is a single interface
 ## for reading but multiple backwards to pull values from. Current supported backends are
-## - [EnvProvider] which reads from environment variables
+## - [EnvProvider] which reads from environment variables and `.env` files
 ## - [JsonProvider] which reads from a JSON file
+## - [TomlProvider] which reads from a TOML file
 
 runnableExamples:
   import std/[envvars, json, options]
