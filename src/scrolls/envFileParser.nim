@@ -20,7 +20,7 @@ let grammar = block:
   any((comment: comment, variable: key $ key * e('=') * value $ value))
 
 proc parseEnvFile*(data: string): Table[string, string] =
-  for line in grammar.match(data):
+  for line in (*grammar).match(data).get(@[]):
     case branch(line)
     of variable:
       result[line.variable.key] = line.variable.value
